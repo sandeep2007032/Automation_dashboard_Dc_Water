@@ -1,15 +1,20 @@
 <?php
 include 'db.php';
-// SQL query to fetch the most recent record
+
+// Hardcoded project_id
+$project_id = 1;
+
+// SQL query to fetch the most recent record for project_id = 2
 $sql = "SELECT 
             total_test_no_of_case AS total,
             num_of_pass_test_case AS passed,
             num_of_fail_test_case AS failed,
             total_time_to_run_test_case AS total_time_taken,
-            current_date_and_time As Date_take
+            current_date_and_time AS Date_take
         FROM testsuites
+        WHERE project_id = $project_id
         ORDER BY suite_id DESC
-        LIMIT 1"; // Adjust 'suite_id' if using a different column for ordering
+        LIMIT 1";
 
 $result = $conn->query($sql);
 

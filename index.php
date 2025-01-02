@@ -161,39 +161,7 @@ if (isset($_GET['ajax'])) {
         /* Additional styles for the screenshots content */
 
        
-        
-        .pagination {
-            list-style-type: none;
-            display: flex;
-            margin: 0;
-            padding: 0;
-        }
-        .pagination li {
-            margin: 0 5px;
-        }
-        .pagination a {
-            margin: 0 5px;
-    padding: 5px 10px;
-    text-decoration: none;
-    color: #000;
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-        }
-        .pagination a:hover {
-            background-color: #000;
-    color: #fff;
-        }
-        .pagination .active a {
-            background-color: #a4a9ad; /* Blue background for active page */
-    color: rgb(4, 2, 2); /* White text color for active page */
-    border-color: #000000; /* Blue border for active page */
-    font-weight: bold;
-        }
-        .pagination .disabled a {
-            color: #ddd;
-            border-color: #ddd;
-            cursor: not-allowed;
-        }
+      
 
     </style>
 </head>
@@ -204,7 +172,9 @@ if (isset($_GET['ajax'])) {
             <img src="/DC/img/vTech lcompany_logo white 1 1.png" alt="Logo"> <!-- Replace with your logo -->
         </div>
         <div class="links">
-            <a href="#" id="dashboardLink" class="link active"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="#" id="projectLink" class="link active"><i class="fas fa-home"></i> project</a>
+
+            <a href="#" id="dashboardLink" class="link "><i class="fas fa-home"></i> Dashboard</a>
             <!-- Changed to home icon -->
             <a href="#" id="suitesLink" class="link"><i class="fa fa-briefcase"></i> Suites</a>
             <a href="#" id="testMarticsLink" class="link"><i class="fas fa-list"></i> Test Martics</a>
@@ -222,7 +192,10 @@ if (isset($_GET['ajax'])) {
 
 
 
+<div class="projectContent">
 
+bhehbcfe
+</div>
 
 
         <!-- Main content goes here -->
@@ -437,7 +410,7 @@ if (isset($_GET['ajax'])) {
     <script>                
 
 
-
+$('#dashboardLink, #suitesLink, #testMarticsLink').hide();
 
 function toggleMenu() {
     const sidebar = document.querySelector('.sidebar');
@@ -770,6 +743,7 @@ function downloadExcel() {
             const dashboardLink = document.getElementById('dashboardLink');
             const suitesLink = document.getElementById('suitesLink');
             const testMarticsLink = document.getElementById('testMarticsLink');
+            const projectLink = document.getElementById('projectLink');
        
             // const ProjectLink = document.getElementById('ProjectLink');
 
@@ -792,7 +766,12 @@ function downloadExcel() {
                 showContent('testMartics');
                 setActiveLink(testMarticsLink);
             });
-            ;
+            projectLink.addEventListener('click', function (event) {
+                event.preventDefault();
+                showContent('project');
+                setActiveLink(projectLink);
+            });
+            
 
 
             // Function to show the appropriate content and hide others
@@ -800,6 +779,8 @@ function downloadExcel() {
                 dashboardContent.style.display = 'none';
                 testMarticsContent.style.display = 'none';
                 suitesContent.style.display = 'none';
+                projectContent.style.display = 'none';
+
 
                
 
@@ -810,8 +791,8 @@ function downloadExcel() {
                 } else if (contentType === 'suites') {
                     suitesContent.style.display = 'block';
                 
-                    // } else if (contentType === 'Project') {
-                    //     ProjectContent.style.display = 'block';
+                    } else if (contentType === 'project') {
+                        projectContent.style.display = 'block';
                 }
             }
 
@@ -821,6 +802,7 @@ function downloadExcel() {
                 dashboardLink.classList.remove('active');
                 suitesLink.classList.remove('active');
                 testMarticsLink.classList.remove('active');
+                projectLink.classList.remove('active');
              
 
                 // Add active class to the clicked link
@@ -1000,143 +982,196 @@ function downloadExcel() {
 
 
 
-        document.addEventListener("DOMContentLoaded", function () {
-            // Fetch data from the PHP script
-            fetch('fetch_data_test.php')
-                .then(response => response.json())
-                .then(data => {
-                    const labels = data.map(item => item.test_name);
-                    const passData = data.map(item => item.pass_count);
-                    const failData = data.map(item => item.fail_count);
+        // Function to fetch data for a specific project by project_id
+function fetchProjectData(projectId) {
+    $.ajax({
+        url: 'fetch_data_test.php', // Your PHP file that handles fetching the data
+        method: 'GET',
+        data: { project_id: projectId }, // Pass the project_id as a parameter
+        dataType: 'json',
+        success: function (data) {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
 
-                    // Calculate the maximum values for pass and fail
-                    const maxPass = Math.max(...passData, 0); // Ensure at least 0
-                    const maxFail = Math.max(...failData, 0); // Ensure at least 0
-                    const maxValue = Math.max(maxPass, maxFail);
+            const labels = data.map(item => item.test_name);
+            const passData = data.map(item => item.pass_count);
+            const failData = data.map(item => item.fail_count);
 
-                    // Set maximum value for y-axis to maxValue + 500
-                    const yAxisMax = maxValue + 500;
+            // Calculate the maximum values for pass and fail
+            const maxPass = Math.max(...passData, 0); // Ensure at least 0
+            const maxFail = Math.max(...failData, 0); // Ensure at least 0
+            const maxValue = Math.max(maxPass, maxFail);
 
-                    const ctx = document.getElementById('testChart').getContext('2d');
-                    const chartData = {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Pass',
-                                data: passData,
-                                backgroundColor: '#00B69B', // Green for passed cases
-                                barThickness: 15,
-                                borderWidth: 1,
-                                borderRadius: {
-                                    topLeft: 7.5,
-                                    topRight: 7.5,
-                                    bottomLeft: 7.5,
-                                    bottomRight: 7.5
-                                },
-                                barPercentage: 0.2,
-                                categoryPercentage: 0.8
+            // Set maximum value for y-axis to maxValue + 500
+            const yAxisMax = maxValue + 500;
+
+            // Chart setup
+            const ctx = document.getElementById('testChart').getContext('2d');
+            const chartData = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Pass',
+                        data: passData,
+                        backgroundColor: '#00B69B', // Green for passed cases
+                        barThickness: 15,
+                        borderWidth: 1,
+                        borderRadius: {
+                            topLeft: 7.5,
+                            topRight: 7.5,
+                            bottomLeft: 7.5,
+                            bottomRight: 7.5
+                        },
+                        barPercentage: 0.2,
+                        categoryPercentage: 0.8
+                    },
+                    {
+                        label: 'Fail',
+                        data: failData,
+                        backgroundColor: '#FF6262', // Red for failed cases
+                        barThickness: 15,
+                        borderWidth: 1,
+                        borderRadius: {
+                            topLeft: 7.5,
+                            topRight: 7.5,
+                            bottomLeft: 7.5,
+                            bottomRight: 7.5
+                        },
+                        barPercentage: 0.2,
+                        categoryPercentage: 0.8
+                    }
+                ]
+            };
+
+            const config = {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    layout: {
+                        padding: {
+                            bottom: 10
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            font: {
+                                size: 16
                             },
-                            {
-                                label: 'Fail',
-                                data: failData,
-                                backgroundColor: '#FF6262', // Red for failed cases
-                                barThickness: 15,
-                                borderWidth: 1,
-                                borderRadius: {
-                                    topLeft: 7.5,
-                                    topRight: 7.5,
-                                    bottomLeft: 7.5,
-                                    bottomRight: 7.5
-                                },
-                                barPercentage: 0.2,
-                                categoryPercentage: 0.8
+                            padding: {
+                                bottom: 10
+                            },
+                            position: 'left'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: false,
+                            title: {
+                                display: true
+                            },
+                            grid: {
+                                display: false
                             }
-                        ]
-                    };
-
-                    const config = {
-                        type: 'bar',
-                        data: chartData,
-                        options: {
-                            layout: {
-                                padding: {
-                                    bottom: 10
-                                }
+                        },
+                        y: {
+                            title: {
+                                display: true
                             },
-                            plugins: {
-                                title: {
-                                    display: true,
-
-                                    font: {
-                                        size: 16
-                                    },
-                                    padding: {
-                                        bottom: 10
-                                    },
-                                    position: 'left'
-                                },
-                                legend: {
-                                    display: false
-                                }
+                            beginAtZero: true,
+                            max: yAxisMax, // Set maximum value dynamically
+                            ticks: {
+                                stepSize: 100,
+                                padding: 0
                             },
-                            scales: {
-                                x: {
-                                    stacked: false,
-                                    title: {
-                                        display: true,
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
-                                },
-                                y: {
-                                    title: {
-                                        display: true,
-                                    },
-                                    beginAtZero: true,
-                                    max: yAxisMax, // Set maximum value dynamically
-                                    ticks: {
-                                        stepSize: 100,
-                                        padding: 0
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
-                                }
+                            grid: {
+                                display: false
                             }
                         }
-                    };
+                    }
+                }
+            };
 
-                    const testChart = new Chart(ctx, config);
+            // Render the chart
+            new Chart(ctx, config);
 
-                    // Create the custom legend
-                    const legendContainer = document.querySelector('.legend-container');
-                    const legendItems = [
-                        { color: '#00B69B', label: 'Passed' },
-                        { color: '#FF6262', label: 'Failed' }
-                    ];
+            // Create the custom legend
+            const legendContainer = document.querySelector('.legend-container');
+            legendContainer.innerHTML = ''; // Clear previous legends
+            const legendItems = [
+                { color: '#00B69B', label: 'Passed' },
+                { color: '#FF6262', label: 'Failed' }
+            ];
 
-                    legendItems.forEach(item => {
-                        const legendItem = document.createElement('div');
-                        legendItem.classList.add('legend-item');
+            legendItems.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.classList.add('legend-item');
 
-                        const colorCircle = document.createElement('div');
-                        colorCircle.classList.add('legend-color');
-                        colorCircle.style.backgroundColor = item.color;
+                const colorCircle = document.createElement('div');
+                colorCircle.classList.add('legend-color');
+                colorCircle.style.backgroundColor = item.color;
 
-                        const label = document.createElement('span');
-                        label.textContent = item.label;
+                const label = document.createElement('span');
+                label.textContent = item.label;
 
-                        legendItem.appendChild(colorCircle);
-                        legendItem.appendChild(label);
-                        legendContainer.appendChild(legendItem);
+                legendItem.appendChild(colorCircle);
+                legendItem.appendChild(label);
+                legendContainer.appendChild(legendItem);
+            });
+
+            // Display total test count in the HTML
+            document.getElementById('suitesCount').textContent = data.reduce((total, item) => total + parseInt(item.testCount || 0, 10), 0);
+        },
+        error: function (error) {
+            console.error('Error fetching data:', error);
+        }
+    });
+}
+
+// Example: Fetch data for project with id 2 (can be dynamically set)
+fetchProjectData(2);
+
+
+        $(document).ready(function () {
+    // Fetch projects using AJAX
+    function fetchProjects() {
+        $.ajax({
+            url: 'project.php', // Server-side script
+            method: 'POST', // Request method
+            dataType: 'json', // Expect JSON response
+            success: function (data) {
+                const projectContent = $('.projectContent');
+                projectContent.empty(); // Clear existing content
+
+                if (data.length > 0) {
+                    // Loop through each project and append to the container
+                    data.forEach(project => {
+                        const projectHTML = `
+                            <div class="projectItem">
+                                <img src="${project.logo}" alt="${project.name}">
+                                <h3>${project.name}</h3>
+                                <a href="${project.link}" target="_blank">Visit Project</a>
+                            </div>`;
+                        projectContent.append(projectHTML);
                     });
-
-                    // Display testCount in the HTML
-                    document.getElementById('suitesCount').textContent = data.reduce((total, item) => total + parseInt(item.testCount, 10), 0);
-                })
-                .catch(error => console.error('Error fetching data:', error));
+                } else {
+                    projectContent.append('<p>No projects found.</p>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching projects:', error);
+            }
         });
+    }
+
+    // Fetch projects on page load
+    fetchProjects();
+});
 
 
     </script>
